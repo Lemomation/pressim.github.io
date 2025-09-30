@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>President Simulator - Colorful Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    /* Dynamic colorful background */
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: linear-gradient(45deg, #ff0066, #6600ff, #00ccff, #ffcc00, #ff0066);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      margin: 0;
+      padding: 10px;
+      min-height: 100vh;
+      overflow-x: auto;
+      position: relative;
+    }
+    
+    /* Add a subtle pattern overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2px, transparent 0),
+        radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 2px, transparent 0);
+      background-size: 50px 50px;
+      z-index: -1;
+    }
+    
+    @keyframes gradientShift {
+      0% { background-position: 0% 50% }
+      50% { background-position: 100% 50% }
+      100% { background-position: 0% 50% }
+    }
+    
+    h1, h2 { font-family: 'Playfair Display', serif; }
+    .progress-bar-fill { transition: width 0.5s ease-in-out; }
+    .choice-btn { 
+      transition: all 0.2s ease; 
+      position: relative;
+      overflow: hidden;
+    }
+    .choice-btn:after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+    .choice-btn:focus:not(:active)::after {
+      animation: ripple 1s ease-out;
+    }
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 1;
+      }
+      20% {
+        transform: scale(20, 20);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(50, 50);
+        opacity: 0;
+      }
+    }
+    .choice-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 6px 18px rgba(0,0,0,0.3); }
+    #news-feed { 
+      height: 80px; 
+      overflow-y: auto; 
+      scrollbar-width: thin; 
+      scrollbar-color: #4a5568 #1e293b; 
+      font-size: 12px;
+    }
+    #news-feed::-webkit-scrollbar { width: 5px; }
+    #news-feed::-webkit-scrollbar-track { background: #1e293b; border-radius: 10px; }
+    #news-feed::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 10px; border: 1px solid #1e293b; }
+    .fade-in { animation: fadeIn 0.6s ease forwards; }
+    @keyframes fadeIn { from { opacity:0; transform: scale(0.98);} to { opacity:1; transform: scale(1);} }
+    .card { 
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .glow { 
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); }
+      50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+      100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); }
+    }
+    .ad-container {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(51, 65, 85, 0.8));
+      border-radius: 12px;
+      padding: 12px;
+      margin: 10px 0;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Mobile Landscape Layout */
+    .mobile-landscape {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-height: -webkit-fill-available;
+    }
+    
+    .game-header {
+      flex-shrink: 0;
+      padding: 8px 0;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 0 0 12px 12px;
+      margin-bottom: 8px;
+      border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+    }
+    
+    .game-content {
+      display: flex;
+      flex: 1;
+      gap: 12px;
+      overflow: hidden;
+    }
+    
+    .stats-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    
+    .main-panel {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .secondary-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .event-container {
+      flex: 1;
+      margin-bottom: 10px;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .choices-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .news-container {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Element styling for mobile */
+    .stat-box {
+      padding: 10px;
+      border-radius: 12px;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+    
+    .stat-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .stat-title {
+      font-size: 11px;
+      color: #93c5fd;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    
+    .stat-value {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      border-radius: 5px;
+      background: rgba(30, 41, 59, 0.4);
+      margin: 6px 0;
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    
+    .event-box {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      backdrop-filter: blur(5px);
+    }
+    
+    .event-text {
+      flex: 1;
+      overflow-y: auto;
+      font-size: 14px;
+      color: #e5e7eb;
+      line-height: 1.5;
+    }
+    
+    .choice-btn {
+      padding: 12px 8px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(5px);
+    }
+    
+    .news-box {
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      backdrop-filter: blur(5px);
+    }
+    
+    /* Header sizes for mobile */
+    .header-title {
+      font-size: 20px;
+      margin: 0;
+      background: linear-gradient(to right, #fcd34d, #fbbf24, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .header-subtitle {
+      font-size: 12px;
+      margin: 3px 0;
+    }
+    
+    .section-title {
+      font-size: 15px;
+      margin: 6px 0;
+      text-align: center;
+      color: #fbbf24;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Modal adjustments for mobile */
+    .modal-content {
+      width: 90%;
+      max-width: 400px;
+      padding: 20px;
+      border-radius: 16px;
+    }
+    
+    /* Start screen adjustments */
+    .start-screen {
+      padding: 20px;
+    }
+    
+    .start-title {
+      font-size: 28px;
+      background: linear-gradient(to right, #fcd34d, #fbbf24, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Utility classes */
+    .text-sm {
+      font-size: 13px;
+    }
+    
+    .text-xs {
+      font-size: 11px;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    /* Color classes for values */
+    .text-approval { color: #60a5fa; }
+    .text-economy { color: #34d399; }
+    .text-diplomacy { color: #a78bfa; }
+    .text-military { color: #f87171; }
+    .text-literacy { color: #86efac; }
+    .text-population { color: #fde68a; }
+    .text-treasury { color: #5eead4; }
+    
+    /* Achievement badges */
+    .achievement-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #fcd34d, #f59e0b);
+      color: #1e293b;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+      margin: 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Notification toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.95);
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+    }
+    
+    /* Country flag display */
+    .country-flag {
+      display: inline-block;
+      width: 24px;
+      height: 16px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 2px;
+      margin-right: 8px;
+      vertical-align: middle;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Improved input fields */
+    .styled-input {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: white;
+      width: 100%;
+      margin-bottom: 12px;
+      backdrop-filter: blur(5px);
+    }
+    
+    .styled-input:focus {
+      outline: none;
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+    }
+    
+    /* Tooltip styling */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #93c5fd;
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(100, 116, 139, 0.3);
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    /* Floating particles for added visual interest */
+    .particle {
+      position: fixed;
+      width: 4px;
+      height: 4px;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: -1;
+      animation: float 15s infinite linear;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(100px);
+        opacity: 0;
+      }
+    }
+
+    /* Difficulty selector styles */
+    .difficulty-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .difficulty-btn {
+      padding: 12px 8px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+    
+    .difficulty-btn.easy {
+      background: linear-gradient(to right, #10b981, #059669);
+      color: white;
+    }
+    
+    .difficulty-btn.medium {
+      background: linear-gradient(to right, #f59e0b, #d97706);
+      color: white;
+    }
+    
+    .difficulty-btn.hard {
+      background: linear-gradient(to right, #ef4444, #dc2626);
+      color: white;
+    }
+    
+    .difficulty-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    
+    .difficulty-btn.selected {
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+      transform: scale(1.05);
+    }
+    
+    .difficulty-description {
+      font-size: 12px;
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(30, 41, 59, 0.7);
+      border-radius: 8px;
+      border-left: 4px solid #f59e0b;
+    }
+    
+    .difficulty-indicator {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+    
+    .difficulty-indicator.easy {
+      background: #10b981;
+      color: white;
+    }
+    
+    .difficulty-indicator.medium {
+      background: #f59e0b;
+      color: white;
+    }
+    
+    .difficulty-indicator.hard {
+      background: #ef4444;
+      color: white;
+    }
+  </style>
+</head>
+<body class="text-white mobile-landscape">
+  <!-- Floating particles -->
+  <div id="particles-container"></div>
+
+  <!-- START SCREEN -->
+  <div id="start-screen" class="fixed inset-0 flex flex-col items-center justify-center text-center start-screen">
+    <div class="card p-8 w-full max-w-md">
+      <h1 class="start-title font-bold mb-4 fade-in">President Simulator</h1>
+      <p class="text-blue-200 text-sm mb-6 fade-in">Lead your nation. Make decisions. See how long you last!</p>
+      
+      <div class="mb-5 p-4 bg-blue-900/30 rounded-lg border border-blue-700/30">
+        <h3 class="text-md font-bold text-yellow-300 mb-2">High Score</h3>
+        <p id="high-score" class="text-2xl font-bold text-white">0 days</p>
+        <p id="high-score-player" class="text-xs text-blue-200 mt-1">by Player</p>
+      </div>
+      
+      <div class="space-y-3">
+        <button id="new-game-btn" class="choice-btn bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 w-full text-white font-bold py-3 rounded-lg glow">Start New Game</button>
+        <button id="continue-btn" class="choice-btn bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 w-full text-white font-bold py-3 rounded-lg hidden">Continue Game</button>
+        <button id="clear-save-btn" class="block w-full mt-3 text-xs text-blue-300 hover:text-red-400 transition-colors">Clear Saved Data</button>
+      </div>
+    </div>
+    
+    <!-- Advertisement -->
+    <div class="ad-container mt-5 w-full max-w-md">
+      <h3 class="text-white font-bold mb-2 text-sm">Sponsored</h3>
+      <p class="text-blue-100 text-xs">Try our new strategy game - "World Leader" - available now!</p>
+      <button class="mt-2 bg-orange-500 hover:bg-orange-600 text-white py-1 px-3 rounded text-xs transition-colors">Learn More</button>
+    </div>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen" class="hidden fixed inset-0 flex flex-col items-center justify-center text-center p-4">
+    <div class="card p-6 w-full max-w-md">
+      <h2 class="text-2xl font-bold text-yellow-400 mb-5">Create Your President</h2>
+      <input id="player-name" type="text" placeholder="Enter your name" class="styled-input text-sm"/>
+      <input id="player-age" type="number" placeholder="Enter your age" class="styled-input text-sm"/>
+      <select id="player-country" class="styled-input text-sm">
+        <option value="">Select your country</option>
+        <option value="us">United States</option>
+        <option value="in">India</option>
+        <option value="uk">United Kingdom</option>
+        <option value="ca">Canada</option>
+        <option value="de">Germany</option>
+        <option value="fr">France</option>
+        <option value="jp">Japan</option>
+        <option value="au">Australia</option>
+      </select>
+      
+      <!-- DIFFICULTY SELECTION -->
+      <div class="mb-4">
+        <h3 class="text-lg font-bold text-blue-300 mb-3">Select Difficulty</h3>
+        <div class="difficulty-selector">
+          <button class="difficulty-btn easy" data-difficulty="easy">Easy</button>
+          <button class="difficulty-btn medium selected" data-difficulty="medium">Medium</button>
+          <button class="difficulty-btn hard" data-difficulty="hard">Hard</button>
+        </div>
+        <div id="difficulty-description" class="difficulty-description text-left">
+          <strong>Medium:</strong> Balanced challenge with standard starting stats and event effects.
+        </div>
+      </div>
+      
+      <button id="confirm-setup-btn" class="choice-btn bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 w-full text-white font-bold py-3 rounded-lg glow mt-2">Begin Presidency</button>
+      <button id="back-to-start" class="mt-3 text-xs text-blue-300 hover:text-blue-100 transition-colors">Back</button>
+    </div>
+  </div>
+
+  <!-- GAME CONTAINER - MOBILE LANDSCAPE LAYOUT -->
+  <div id="game-root" class="hidden mobile-landscape">
+    <header class="game-header">
+      <h1 class="header-title font-bold">President Simulator</h1>
+      <p id="day-counter" class="header-subtitle text-blue-200">Day 0 of your presidency</p>
+      <p id="player-info" class="header-subtitle text-blue-300"></p>
+      <p id="difficulty-indicator" class="header-subtitle text-blue-200"></p>
+    </header>
+
+    <div class="game-content">
+      <!-- LEFT PANEL: STATS -->
+      <div class="stats-panel">
+        <!-- PRIMARY STATS -->
+        <h2 class="section-title">National Metrics</h2>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <h3 class="stat-title">Approval</h3>
+            <div class="progress-bar"><div id="approval-bar" class="bg-blue-500 h-full progress-bar-fill rounded-full" style="width: 50%"></div></div>
+            <span id="approval-value" class="stat-value text-approval">50%</span>
+          </div>
+          <div class="stat-box">
+            <h3 class="stat-title">Economy</h3>
+            <div class="progress-bar"><div id="economy-bar" class="bg-green-500 h-full progress-bar-fill rounded-full" style="width: 50%"></div></div>
+            <span id="economy-value" class="stat-value text-economy">50%</span>
+          </div>
+          <div class="stat-box">
+            <h3 class="stat-title">Diplomacy</h3>
+            <div class="progress-bar"><div id="diplomacy-bar" class="bg-purple-500 h-full progress-bar-fill rounded-full" style="width: 50%"></div></div>
+            <span id="diplomacy-value" class="stat-value text-diplomacy">50%</span>
+          </div>
+          <div class="stat-box">
+            <h3 class="stat-title">Military</h3>
+            <div class="progress-bar"><div id="military-bar" class="bg-red-500 h-full progress-bar-fill rounded-full" style="width: 50%"></div></div>
+            <span id="military-value" class="stat-value text-military">50%</span>
+          </div>
+        </div>
+
+        <!-- SECONDARY STATS -->
+        <h2 class="section-title">National Indicators</h2>
+        <div class="secondary-stats">
+          <div class="stat-box">
+            <h3 class="stat-title">Literacy Rate</h3>
+            <span id="literacy-value" class="stat-value text-literacy">80%</span>
+          </div>
+          <div class="stat-box">
+            <h3 class="stat-title">Population</h3>
+            <span id="population-value" class="stat-value text-population">100M</span>
+          </div>
+          <div class="stat-box">
+            <h3 class="stat-title">Treasury</h3>
+            <span id="treasury-value" class="stat-value text-treasury">$500B</span>
+          </div>
+        </div>
+
+        <!-- ACHIEVEMENTS -->
+        <h2 class="section-title">Achievements</h2>
+        <div class="stat-box">
+          <div id="achievements-container" class="flex flex-wrap justify-center">
+            <span class="achievement-badge text-xs">First Day</span>
+          </div>
+        </div>
+
+        <!-- NEWS FEED -->
+        <div class="news-container">
+          <h3 class="section-title">News & Announcements</h3>
+          <div class="news-box">
+            <div id="news-feed" class="text-blue-100">
+              <p class="text-xs">Day 0: The world watches as you take your oath of office.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: EVENT AND CHOICES -->
+      <div class="main-panel">
+        <!-- EVENT BOX -->
+        <div class="event-container">
+          <h2 class="section-title">Situation Report</h2>
+          <div class="event-box">
+            <p id="event-box" class="event-text">Welcome to your first day in office. The nation awaits your leadership. Choose your first action wisely.</p>
+          </div>
+        </div>
+
+        <!-- CHOICES -->
+        <h2 class="section-title">Your Decision</h2>
+        <div class="choices-container">
+          <button id="choice1" class="choice-btn bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white"></button>
+          <button id="choice2" class="choice-btn bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"></button>
+        </div>
+        
+        <!-- Advertisement -->
+        <div class="ad-container">
+          <h3 class="text-white font-bold mb-2 text-sm">Special Offer</h3>
+          <p class="text-blue-100 text-xs">Download our mobile app for exclusive presidential challenges!</p>
+          <button class="mt-2 bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded text-xs transition-colors">Get the App</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME OVER MODAL -->
+  <div id="game-over-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="card p-6 text-center modal-content">
+      <h2 id="game-over-title" class="text-2xl font-bold text-red-500 mb-3">Game Over</h2>
+      <p id="game-over-message" class="text-blue-200 text-sm mb-4">Your presidency has come to an end.</p>
+      <p class="text-md font-semibold mb-3 text-blue-100">You survived <span id="days-survived" class="text-lime-400 font-bold">0</span> days.</p>
+      
+      <div class="mb-4 p-3 bg-blue-900/30 rounded-lg border border-blue-700/30">
+        <h3 class="text-md font-bold text-yellow-300 mb-2">Difficulty & Score</h3>
+        <p id="final-difficulty" class="text-sm font-bold text-white mb-1"></p>
+        <p id="final-high-score" class="text-xl font-bold text-white">0 days</p>
+        <p id="final-high-score-player" class="text-xs text-blue-200 mt-1">by Player</p>
+      </div>
+      
+      <!-- Achievements Earned -->
+      <div class="mb-4 p-3 bg-blue-900/30 rounded-lg border border-blue-700/30">
+        <h3 class="text-md font-bold text-yellow-300 mb-2">Achievements Earned</h3>
+        <div id="final-achievements" class="flex flex-wrap justify-center">
+          <span class="achievement-badge text-xs">First Day</span>
+        </div>
+      </div>
+      
+      <!-- Social Sharing -->
+      <div class="mb-4">
+        <h3 class="text-md font-bold text-blue-300 mb-2">Share your score:</h3>
+        <div class="flex justify-center space-x-3">
+          <button class="social-share bg-green-600 hover:bg-green-700 p-2 rounded-full transition-colors" data-platform="whatsapp">
+            <i class="fab fa-whatsapp text-white text-md"></i>
+          </button>
+          <button class="social-share bg-blue-400 hover:bg-blue-500 p-2 rounded-full transition-colors" data-platform="twitter">
+            <i class="fab fa-twitter text-white text-md"></i>
+          </button>
+          <button class="social-share bg-pink-600 hover:bg-pink-700 p-2 rounded-full transition-colors" data-platform="instagram">
+            <i class="fab fa-instagram text-white text-md"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="grid gap-3">
+        <button id="restart-btn" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold py-2 px-4 rounded-lg glow text-sm">Try Again</button>
+        <button id="quit-to-menu" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-2 px-4 rounded-lg glow text-sm">Quit to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast" class="toast">
+    <p id="toast-message" class="text-sm"></p>
+  </div>
+
+  <!-- AUDIO -->
+  <audio id="sfx-choice" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" preload="none"></audio>
+  <audio id="sfx-gameover" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" preload="none"></audio>
+  <audio id="sfx-special" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" preload="none"></audio>
+  <audio id="sfx-notification" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" preload="none"></audio>
+
+  <script>
+    // ---------- GLOBAL STATE ----------
+    let player = { name: '', age: 0, country: '', countryCode: '', difficulty: 'medium' };
+    let stats = {};
+    let daysSurvived = 0;
+    let firstTurn = true;
+    let currentEvent = null;
+    let availableEvents = [];
+    let highScore = 0;
+    let highScorePlayer = "Player";
+    let highScoreDifficulty = "medium";
+    let achievements = new Set(["First Day"]);
+
+    // Country flag mapping
+    const countryFlags = {
+      'us': '🇺🇸', 'in': '🇮🇳', 'uk': '🇬🇧', 'ca': '🇨🇦',
+      'de': '🇩🇪', 'fr': '🇫🇷', 'jp': '🇯🇵', 'au': '🇦🇺'
+    };
+
+    // Achievement definitions
+    const achievementDefs = {
+      "First Day": { desc: "Complete your first day in office" },
+      "Economy Master": { desc: "Reach 100% economic strength" },
+      "Diplomatic Victory": { desc: "Reach 100% diplomacy" },
+      "War Hawk": { desc: "Reach 100% military strength" },
+      "Beloved Leader": { desc: "Reach 100% approval rating" },
+      "Long Term": { desc: "Survive 100 days in office" },
+      "Very Long Term": { desc: "Survive 365 days in office" },
+      "Economic Crisis": { desc: "Let the economy drop below 10%" },
+      "Impeached": { desc: "Get removed from office" },
+      "Bankrupt": { desc: "Empty the national treasury" },
+      "World Leader": { desc: "Maintain all stats above 80% for 50 days" }
+    };
+
+    // Difficulty settings
+    const difficultySettings = {
+      easy: {
+        name: "Easy",
+        startingStats: { approval: 70, economy: 70, diplomacy: 70, military: 70, literacy: 85, population: 120000000, treasury: 700 },
+        effectMultiplier: 0.7,
+        description: "Gentle challenge with generous starting stats and reduced event effects."
+      },
+      medium: {
+        name: "Medium", 
+        startingStats: { approval: 50, economy: 50, diplomacy: 50, military: 50, literacy: 80, population: 100000000, treasury: 500 },
+        effectMultiplier: 1.0,
+        description: "Balanced challenge with standard starting stats and event effects."
+      },
+      hard: {
+        name: "Hard",
+        startingStats: { approval: 30, economy: 30, diplomacy: 30, military: 30, literacy: 75, population: 80000000, treasury: 300 },
+        effectMultiplier: 1.3,
+        description: "Tough challenge with low starting stats and amplified event effects."
+      }
+    };
+
+    // ---------- DOM SHORTCUTS ----------
+    const startScreen = document.getElementById('start-screen');
+    const setupScreen = document.getElementById('setup-screen');
+    const gameRoot = document.getElementById('game-root');
+
+    const newGameBtn = document.getElementById('new-game-btn');
+    const continueBtn = document.getElementById('continue-btn');
+    const clearSaveBtn = document.getElementById('clear-save-btn');
+    const backToStartBtn = document.getElementById('back-to-start');
+
+    const dayCounter = document.getElementById('day-counter');
+    const playerInfo = document.getElementById('player-info');
+    const highScoreElement = document.getElementById('high-score');
+    const highScorePlayerElement = document.getElementById('high-score-player');
+    const finalHighScoreElement = document.getElementById('final-high-score');
+    const finalHighScorePlayerElement = document.getElementById('final-high-score-player');
+
+    const approvalBar = document.getElementById('approval-bar');
+    const economyBar = document.getElementById('economy-bar');
+    const diplomacyBar = document.getElementById('diplomacy-bar');
+    const militaryBar = document.getElementById('military-bar');
+
+    const approvalValue = document.getElementById('approval-value');
+    const economyValue = document.getElementById('economy-value');
+    const diplomacyValue = document.getElementById('diplomacy-value');
+    const militaryValue = document.getElementById('military-value');
+
+    const literacyValue = document.getElementById('literacy-value');
+    const populationValue = document.getElementById('population-value');
+    const treasuryValue = document.getElementById('treasury-value');
+
+    const eventBox = document.getElementById('event-box');
+    const choice1Btn = document.getElementById('choice1');
+    const choice2Btn = document.getElementById('choice2');
+
+    const newsFeed = document.getElementById('news-feed');
+    const achievementsContainer = document.getElementById('achievements-container');
+    const finalAchievementsContainer = document.getElementById('final-achievements');
+
+    const gameOverModal = document.getElementById('game-over-modal');
+    const gameOverMessage = document.getElementById('game-over-message');
+    const daysSurvivedSpan = document.getElementById('days-survived');
+    const restartBtn = document.getElementById('restart-btn');
+    const quitToMenuBtn = document.getElementById('quit-to-menu');
+
+    const confirmSetupBtn = document.getElementById('confirm-setup-btn');
+    const socialShareButtons = document.querySelectorAll('.social-share');
+
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+
+    // Difficulty elements
+    const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+    const difficultyDescription = document.getElementById('difficulty-description');
+    const difficultyIndicator = document.getElementById('difficulty-indicator');
+    const finalDifficultyElement = document.getElementById('final-difficulty');
+
+    // Audio
+    const choiceSound = document.getElementById('sfx-choice');
+    const gameOverSound = document.getElementById('sfx-gameover');
+    const specialEventSound = document.getElementById('sfx-special');
+    const notificationSound = document.getElementById('sfx-notification');
+
+    // ---------- GAME DATA ----------
+    const events = [
+      // Economy
+      { text: "Another country wants to tax our goods. How do you respond?",
+        choices: [
+          { text: "Talk and find a middle ground.", effects: { diplomacy: +15, economy: -5 } },
+          { text: "Tax their goods in return.", effects: { diplomacy: -15, approval: +10, economy: -10 } }
+        ]},
+      { text: "The stock market is crashing! People are worried.",
+        choices: [
+          { text: "Help the big banks with money.", effects: { economy: +20, approval: -15, treasury: -50 } },
+          { text: "Let the market fix itself.", effects: { economy: -20, approval: +10 } }
+        ]},
+      { text: "Some people want the government to give everyone money each month.",
+        choices: [
+          { text: "Try a small program to test it.", effects: { approval: +15, economy: -20, treasury: -40 } },
+          { text: "Say it costs too much money.", effects: { approval: -10, economy: +10 } }
+        ]},
+      { text: "Prices are going up fast. The bank says to raise interest rates.",
+        choices: [
+          { text: "Support raising rates.", effects: { economy: +15, approval: -10 } },
+          { text: "Ask them to wait.", effects: { economy: -15, approval: +5 } }
+        ]},
+      { text: "A big company wants a tax break to build a new factory.",
+        choices: [
+          { text: "Give them the tax break.", effects: { economy: +10, approval: -5, treasury: -15 } },
+          { text: "Say no to the request.", effects: { economy: -10, approval: +5, treasury: +15 } }
+        ]},
+      { text: "Advisors say fewer rules for banks will help the economy grow.",
+        choices: [
+          { text: "Reduce banking rules.", effects: { economy: +20, approval: -10 } },
+          { text: "Keep current rules.", effects: { economy: -5, approval: +5 } }
+        ]},
+
+      // Domestic / Approval
+      { text: "A plan to give more money to schools is on your desk. It's popular but expensive.",
+        choices: [
+          { text: "Sign the plan into law.", effects: { approval: +15, economy: -10, literacy: +2, treasury: -20 } },
+          { text: "Reject the plan.", effects: { approval: -15, economy: +10 } }
+        ]},
+      { text: "A famous person has criticized your leadership.",
+        choices: [
+          { text: "Ignore the comments.", effects: { approval: -5 } },
+          { text: "Respond strongly.", effects: { approval: +5, diplomacy: -5 } }
+        ]},
+      { text: "People are debating about healthcare for all.",
+        choices: [
+          { text: "Support healthcare for everyone.", effects: { approval: +20, economy: -15, military: -5, treasury: -60 } },
+          { text: "Support private healthcare.", effects: { approval: -15, economy: +15 } }
+        ]},
+      { text: "A huge hurricane has damaged a coastal area.",
+        choices: [
+          { text: "Send lots of government help.", effects: { approval: +15, economy: -10, treasury: -25 } },
+          { text: "Ask for private donations.", effects: { approval: -10, economy: +5 } }
+        ]},
+      { text: "A publicly funded art piece is causing debate.",
+        choices: [
+          { text: "Support artistic freedom.", effects: { approval: +5, diplomacy: +5 } },
+          { text: "Stop the funding and apologize.", effects: { approval: -5 } }
+        ]},
+      { text: "Protesters want changes to police methods.",
+        choices: [
+          { text: "Meet with protest leaders.", effects: { approval: +15, military: -5 } },
+          { text: "Support stronger police action.", effects: { approval: -15, military: +5 } }
+        ]},
+      { text: "Some want to reduce penalties for certain drugs to have fewer people in jail.",
+        choices: [
+          { text: "Support reduced penalties.", effects: { approval: +10, economy: +5, military: -5 } },
+          { text: "Keep strong drug laws.", effects: { approval: -10, military: +5 } }
+        ]},
+      { text: "A national monument is seen as representing a painful history.",
+        choices: [
+          { text: "Remove the monument.", effects: { approval: +10 } },
+          { text: "Keep it as history.", effects: { approval: -10 } }
+        ]},
+
+      // Diplomacy
+      { text: "A nearby country asks for military help against rebels.",
+        choices: [
+          { text: "Send help and advisors.", effects: { military: -10, diplomacy: +15, approval: -5 } },
+          { text: "Say no to the request.", effects: { diplomacy: -15, military: +5 } }
+        ]},
+      { text: "We caught a spy from another country.",
+        choices: [
+          { text: "Quietly send the spy back.", effects: { diplomacy: +10, military: -10, approval: -5 } },
+          { text: "Put the spy on public trial.", effects: { diplomacy: -20, military: +10, approval: +15 } }
+        ]},
+      { text: "An ally wants our help in a war.",
+        choices: [
+          { text: "Honor our agreement and join the war.", effects: { military: -30, diplomacy: +20, economy: -20, approval: -15, treasury: -100, population: -50000 } },
+          { text: "Find a way to avoid direct war.", effects: { diplomacy: -25, military: +10, approval: +5 } }
+        ]},
+      { text: "World leaders want new targets to fight climate change.",
+        choices: [
+          { text: "Commit to the new targets.", effects: { diplomacy: +20, economy: -15, approval: +10 } },
+          { text: "Refuse, saying it hurts our economy.", effects: { diplomacy: -20, economy: +10, approval: -10 } }
+        ]},
+      { text: "A small country found lots of oil.",
+        choices: [
+          { text: "Offer help in exchange for oil access.", effects: { diplomacy: +10, economy: +15 } },
+          { text: "Stay out of the situation.", effects: { diplomacy: -5 } }
+        ]},
+      { text: "You can host peace talks between two fighting countries.",
+        choices: [
+          { text: "Host the peace talks.", effects: { diplomacy: +25, approval: +10, military: -5 } },
+          { text: "Let another country handle it.", effects: { diplomacy: -10 } }
+        ]},
+      { text: "Another country is gaining influence by giving loans and building projects.",
+        choices: [
+          { text: "Offer our own aid packages.", effects: { diplomacy: +10, economy: -15, treasury: -10 } },
+          { text: "Criticize their methods publicly.", effects: { diplomacy: -10, approval: +5 } }
+        ]},
+
+      // Military
+      { text: "The military wants money for a new fighter jet program.",
+        choices: [
+          { text: "Approve the funding.", effects: { military: +20, economy: -15, treasury: -80 } },
+          { text: "Spend on domestic programs instead.", effects: { military: -10, approval: +10, economy: +5, treasury: +20 } }
+        ]},
+      { text: "A cyberattack has hurt our infrastructure.",
+        choices: [
+          { text: "Launch a counter cyberattack.", effects: { military: +15, diplomacy: -20, approval: +5 } },
+          { text: "Improve our cyber defenses.", effects: { military: -5, diplomacy: +10, economy: -5, treasury: -10 } }
+        ]},
+      { text: "Generals want more money for military updates.",
+        choices: [
+          { text: "Give them the money.", effects: { military: +15, economy: -10, treasury: -50 } },
+          { text: "Ask them to work with current funds.", effects: { military: -10, economy: +5 } }
+        ]},
+      { text: "We have a border disagreement with a neighbor.",
+        choices: [
+          { text: "Send troops to the border.", effects: { military: +10, diplomacy: -15 } },
+          { text: "Push for peaceful talks.", effects: { military: -5, diplomacy: +10 } }
+        ]},
+      { text: "Terrorists are hiding in a friendly country.",
+        choices: [
+          { text: "Attack with drones.", effects: { military: +10, diplomacy: -15, approval: +5 } },
+          { text: "Ask their government to act.", effects: { military: -5, diplomacy: +5, approval: -5 } }
+        ]},
+      { text: "Veterans say they aren't getting good healthcare and benefits.",
+        choices: [
+          { text: "Improve veterans' services.", effects: { military: +10, approval: +10, economy: -10, treasury: -30 } },
+          { text: "Study the problem more.", effects: { military: -10, approval: -5 } }
+        ]},
+
+      // Science & Technology
+      { text: "Scientists want to send people to Mars.",
+        choices: [
+          { text: "Fund the Mars mission.", effects: { approval: +15, diplomacy: +10, economy: -20, treasury: -100, literacy: +1 } },
+          { text: "Spend on Earth problems instead.", effects: { approval: -5, economy: +10 } }
+        ]},
+      { text: "A big advance in AI has potential but raises ethical questions.",
+        choices: [
+          { text: "Fund more AI research.", effects: { economy: +15, approval: +5, military: +5, literacy: +1 } },
+          { text: "Create rules first before more research.", effects: { economy: -10, approval: -5 } }
+        ]},
+      { text: "A dangerous disease is spreading worldwide.",
+        choices: [
+          { text: "Order people to stay home.", effects: { approval: +10, economy: -25, population: -100000 } },
+          { text: "Suggest precautions but don't require them.", effects: { approval: -15, economy: +10, population: -500000 } }
+        ]},
+      { text: "A plan for a nationwide high-speed train network is proposed.",
+        choices: [
+          { text: "Approve the train network.", effects: { economy: -20, approval: +15, treasury: -120 } },
+          { text: "Focus on improving roads.", effects: { economy: -5, approval: -5, treasury: -30 } }
+        ]},
+      { text: "Scientists found a way to reverse aging in mice and want funding for human tests.",
+        choices: [
+          { text: "Fund the research.", effects: { approval: +10, economy: -10, treasury: -15 } },
+          { text: "Say it's too risky.", effects: { approval: -5 } }
+        ]},
+
+      // Disasters & Misc
+      { text: "A major earthquake hit a remote area.",
+        choices: [
+          { text: "Send military help.", effects: { approval: +10, military: -5, economy: -5, population: -10000 } },
+          { text: "Send money and let local leaders manage.", effects: { approval: +5, economy: -10, treasury: -10, population: -10000 } }
+        ]},
+      { text: "The space agency wants to build a Moon base with other countries.",
+        choices: [
+          { text: "Lead the international effort.", effects: { diplomacy: +15, economy: -15, approval: +10, treasury: -90, literacy: +1 } },
+          { text: "Let other nations take the lead.", effects: { diplomacy: -5, economy: +5 } }
+        ]},
+      { text: "A bad drought threatens our food supply.",
+        choices: [
+          { text: "Limit water use and help farmers.", effects: { economy: -10, approval: +10, treasury: -15 } },
+          { text: "Pay for food imports.", effects: { economy: -15, diplomacy: +5, treasury: -20 } }
+        ]},
+      { text: "We arrested a foreign journalist for spying; other countries are angry.",
+        choices: [
+          { text: "Send the journalist home.", effects: { diplomacy: +10, approval: -5 } },
+          { text: "Have a public trial.", effects: { diplomacy: -15, approval: +10 } }
+        ]},
+      { text: "Spy agencies want to start a mass surveillance program.",
+        choices: [
+          { text: "Approve the program secretly.", effects: { military: +15, approval: -20, diplomacy: -5 } },
+          { text: "Reject due to privacy concerns.", effects: { military: -10, approval: +15 } }
+        ]},
+      { text: "UN vote: Should we recognize a new country that broke away?",
+        choices: [
+          { text: "Recognize the new nation.", effects: { diplomacy: +10 } },
+          { text: "Don't vote either way.", effects: { diplomacy: -10 } }
+        ]},
+      { text: "A historic landmark needs expensive repairs.",
+        choices: [
+          { text: "Pay for the repairs.", effects: { approval: +10, economy: -10, treasury: -5 } },
+          { text: "Let private groups raise money.", effects: { approval: -5, economy: +5 } }
+        ]},
+      { text: "People fleeing danger arrive at our border.",
+        choices: [
+          { text: "Let them stay in our country.", effects: { approval: +5, diplomacy: +10, population: +20000 } },
+          { text: "Send them away.", effects: { approval: -5, diplomacy: -10 } }
+        ]},
+      { text: "Our national airline is almost bankrupt.",
+        choices: [
+          { text: "Bail out the airline.", effects: { economy: -10, approval: +5, treasury: -20 } },
+          { text: "Let it go bankrupt.", effects: { economy: +10, approval: -10 } }
+        ]},
+      { text: "Pirates have taken one of our cargo ships.",
+        choices: [
+          { text: "Send special forces to rescue it.", effects: { military: +10, diplomacy: -5, treasury: -2 } },
+          { text: "Pay the pirates to release it.", effects: { military: -5, economy: -5, treasury: -1 } }
+        ]}
+    ];
+
+    const surpriseEvents = [
+      { text: "Someone tried to assassinate you! You survived, but security wants more resources.", effects: { military: +10, approval: -10, treasury: -20 } },
+      { text: "Big protests have started in the capital. Police can't control them.", effects: { approval: -20, military: -15, economy: -10 } },
+      { text: "A giant asteroid is heading toward Earth! Countries need to work together.", effects: { diplomacy: +25, economy: -15, military: -10 } },
+      { text: "A big scandal involving your officials has been discovered.", effects: { approval: -25, diplomacy: -10 } },
+      { text: "Scientists made a breakthrough in renewable energy!", effects: { economy: +15, approval: +10, diplomacy: +5 } },
+      { text: "A popular celebrity endorsed your leadership!", effects: { approval: +15 } },
+      { text: "A natural disaster struck a neighboring country asking for help.", effects: { diplomacy: +10, treasury: -15, approval: +5 } }
+    ];
+
+    // ---------- HELPERS ----------
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function shuffle(arr) { return arr.map(v => ({ v, r: Math.random() })).sort((a,b) => a.r - b.r).map(o => o.v); }
+
+    function pushNews(html) {
+      newsFeed.innerHTML = <p class="text-xs">${html}</p> + newsFeed.innerHTML;
+      if (newsFeed.children.length > 20) {
+        newsFeed.removeChild(newsFeed.lastChild);
+      }
+    }
+    
+    function showToast(message) {
+      toastMessage.textContent = message;
+      toast.classList.add('show');
+      try { notificationSound.play(); } catch (_) {}
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+    
+    function updateHighScore() {
+      // Check if this is a new high score for this difficulty
+      const difficultyKey = presidentSimulatorHighScore_${player.difficulty};
+      const playerKey = presidentSimulatorHighScorePlayer_${player.difficulty};
+      
+      const currentHighScore = parseInt(localStorage.getItem(difficultyKey) || 0, 10);
+      
+      if (daysSurvived > currentHighScore) {
+        highScore = daysSurvived;
+        highScorePlayer = player.name;
+        highScoreDifficulty = player.difficulty;
+        
+        localStorage.setItem(difficultyKey, highScore.toString());
+        localStorage.setItem(playerKey, highScorePlayer);
+        
+        showToast(New ${difficultySettings[player.difficulty].name} Difficulty High Score: ${highScore} days!);
+      } else {
+        highScore = currentHighScore;
+        highScorePlayer = localStorage.getItem(playerKey) || "Player";
+        highScoreDifficulty = player.difficulty;
+      }
+      
+      highScoreElement.textContent = ${highScore} days;
+      highScorePlayerElement.textContent = by ${highScorePlayer} (${difficultySettings[highScoreDifficulty].name});
+      finalHighScoreElement.textContent = ${highScore} days;
+      finalHighScorePlayerElement.textContent = by ${highScorePlayer} (${difficultySettings[highScoreDifficulty].name});
+    }
+
+    function shareScore(platform) {
+      const message = I survived ${daysSurvived} days as President in President Simulator! Can you do better?;
+      let url = '';
+      
+      switch(platform) {
+        case 'twitter':
+          url = https://twitter.com/intent/tweet?text=${encodeURIComponent(message)};
+          break;
+        case 'whatsapp':
+          url = https://api.whatsapp.com/send?text=${encodeURIComponent(message)};
+          break;
+        case 'instagram':
+          // Instagram doesn't have direct sharing API, so we'll just copy to clipboard
+          navigator.clipboard.writeText(message);
+          showToast('Score copied to clipboard! Paste it on Instagram.');
+          return;
+      }
+      
+      window.open(url, '_blank');
+    }
+
+    function updateAchievements() {
+      // Check for new achievements
+      if (stats.economy >= 100 && !achievements.has("Economy Master")) {
+        achievements.add("Economy Master");
+        showToast("Achievement Unlocked: Economy Master!");
+      }
+      if (stats.diplomacy >= 100 && !achievements.has("Diplomatic Victory")) {
+        achievements.add("Diplomatic Victory");
+        showToast("Achievement Unlocked: Diplomatic Victory!");
+      }
+      if (stats.military >= 100 && !achievements.has("War Hawk")) {
+        achievements.add("War Hawk");
+        showToast("Achievement Unlocked: War Hawk!");
+      }
+      if (stats.approval >= 100 && !achievements.has("Beloved Leader")) {
+        achievements.add("Beloved Leader");
+        showToast("Achievement Unlocked: Beloved Leader!");
+      }
+      if (daysSurvived >= 100 && !achievements.has("Long Term")) {
+        achievements.add("Long Term");
+        showToast("Achievement Unlocked: Long Term!");
+      }
+      if (daysSurvived >= 365 && !achievements.has("Very Long Term")) {
+        achievements.add("Very Long Term");
+        showToast("Achievement Unlocked: Very Long Term!");
+      }
+      if (stats.economy <= 10 && !achievements.has("Economic Crisis")) {
+        achievements.add("Economic Crisis");
+        showToast("Achievement Unlocked: Economic Crisis!");
+      }
+      if (stats.treasury <= 0 && !achievements.has("Bankrupt")) {
+        achievements.add("Bankrupt");
+        showToast("Achievement Unlocked: Bankrupt!");
+      }
+      
+      // Update achievements display
+      achievementsContainer.innerHTML = '';
+      finalAchievementsContainer.innerHTML = '';
+      
+      Array.from(achievements).forEach(achievement => {
+        const badge = document.createElement('span');
+        badge.className = 'achievement-badge';
+        badge.textContent = achievement;
+        badge.title = achievementDefs[achievement]?.desc || '';
+        
+        achievementsContainer.appendChild(badge.cloneNode(true));
+        finalAchievementsContainer.appendChild(badge);
+      });
+    }
+
+    // ---------- SAVE / LOAD ----------
+    function saveGame() {
+      const state = {
+        player, stats, daysSurvived, firstTurn, availableEvents, 
+        newsFeedHTML: newsFeed.innerHTML, achievements: Array.from(achievements)
+      };
+      localStorage.setItem('presidentSimulator', JSON.stringify(state));
+    }
+
+    function loadGame() {
+      const raw = localStorage.getItem('presidentSimulator');
+      if (!raw) return false;
+      try {
+        const state = JSON.parse(raw);
+        player = state.player || player;
+        stats = state.stats || stats;
+        daysSurvived = state.daysSurvived || 0;
+        firstTurn = state.firstTurn ?? true;
+        availableEvents = state.availableEvents?.length ? state.availableEvents : shuffle([...events]);
+        newsFeed.innerHTML = state.newsFeedHTML || '<p class="text-xs">Day 0: The world watches as you take your oath of office.</p>';
+        achievements = new Set(state.achievements || ["First Day"]);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function clearSave() {
+      localStorage.removeItem('presidentSimulator');
+      continueBtn.classList.add('hidden');
+      showToast('Save data cleared!');
+    }
+
+    // ---------- UI UPDATE ----------
+    function updateHeader() {
+      dayCounter.textContent = Day ${daysSurvived} of your presidency;
+      const flag = countryFlags[player.countryCode] || '🏳';
+      playerInfo.textContent = ${flag} ${player.name}, Age ${player.age} — President of ${player.country};
+      
+      // Update difficulty indicator
+      const difficultyClass = player.difficulty;
+      const difficultyName = difficultySettings[player.difficulty].name;
+      difficultyIndicator.innerHTML = Difficulty: <span class="difficulty-indicator ${difficultyClass}">${difficultyName}</span>;
+    }
+
+    function updateStatsUI() {
+      stats.approval   = clamp(stats.approval, 0, 100);
+      stats.economy    = clamp(stats.economy, 0, 100);
+      stats.diplomacy  = clamp(stats.diplomacy, 0, 100);
+      stats.military   = clamp(stats.military, 0, 100);
+      stats.literacy   = clamp(stats.literacy, 0, 100);
+      stats.population = Math.max(0, Math.floor(stats.population));
+      stats.treasury   = Math.max(0, Math.floor(stats.treasury));
+
+      approvalBar.style.width  = ${stats.approval}%;
+      economyBar.style.width   = ${stats.economy}%;
+      diplomacyBar.style.width = ${stats.diplomacy}%;
+      militaryBar.style.width  = ${stats.military}%;
+
+      approvalValue.textContent  = ${stats.approval}%;
+      economyValue.textContent   = ${stats.economy}%;
+      diplomacyValue.textContent = ${stats.diplomacy}%;
+      militaryValue.textContent  = ${stats.military}%;
+
+      literacyValue.textContent   = ${stats.literacy}%;
+      populationValue.textContent = stats.population >= 1000000 ? 
+        ${(stats.population/1000000).toFixed(1)}M : 
+        ${(stats.population/1000).toFixed(0)}K;
+      treasuryValue.textContent   = stats.treasury >= 1000 ? 
+        $${(stats.treasury/1000).toFixed(1)}T : 
+        $${stats.treasury}B;
+      
+      updateAchievements();
+    }
+
+    function refreshUI() { 
+      updateHeader(); 
+      updateStatsUI(); 
+      
+      // Update final difficulty display in game over modal
+      const difficultyClass = player.difficulty;
+      const difficultyName = difficultySettings[player.difficulty].name;
+      finalDifficultyElement.innerHTML = Difficulty: <span class="difficulty-indicator ${difficultyClass}">${difficultyName}</span>;
+    }
+
+    // ---------- CORE GAME FLOW ----------
+    function initStats() {
+      // Use starting stats based on difficulty
+      stats = { ...difficultySettings[player.difficulty].startingStats };
+    }
+
+    function applyDifficultyEffects(effects) {
+      // Apply difficulty multiplier to effects
+      const multiplier = difficultySettings[player.difficulty].effectMultiplier;
+      const modifiedEffects = {};
+      
+      for (const key in effects) {
+        if (effects.hasOwnProperty(key)) {
+          // Apply multiplier, but ensure we're working with integers
+          modifiedEffects[key] = Math.round(effects[key] * multiplier);
+        }
+      }
+      
+      return modifiedEffects;
+    }
+
+    function startNewGame() {
+      // reset everything
+      initStats();
+      daysSurvived = 0;
+      firstTurn = true;
+      availableEvents = shuffle([...events]);
+      achievements = new Set(["First Day"]);
+
+      newsFeed.innerHTML = '<p class="text-xs">Day 0: The world watches as you take your oath of office.</p>';
+      eventBox.textContent = 'Welcome to your first day in office. The nation awaits your leadership. Choose your first action wisely.';
+      choice1Btn.textContent = '📚 Focus on education';
+      choice2Btn.textContent = '💰 Focus on the economy';
+      choice2Btn.classList.remove('hidden');
+
+      refreshUI();
+      saveGame();
+
+      // show game
+      startScreen.classList.add('hidden');
+      setupScreen.classList.add('hidden');
+      gameRoot.classList.remove('hidden');
+    }
+
+    function presentEvent() {
+      // 10% chance of a surprise event
+      if (Math.random() < 0.10) {
+        const se = surpriseEvents[Math.floor(Math.random() * surpriseEvents.length)];
+        currentEvent = { ...se, isSurprise: true };
+        eventBox.textContent = '💣 Breaking News! ' + se.text;
+        choice1Btn.textContent = 'Deal with it.';
+        choice2Btn.classList.add('hidden');
+        try { specialEventSound.play(); } catch (_) {}
+        return;
+      }
+
+      if (availableEvents.length === 0) {
+        availableEvents = shuffle([...events]);
+      }
+      const next = availableEvents.pop();
+      currentEvent = { ...next, isSurprise: false };
+      eventBox.textContent = next.text;
+      choice1Btn.textContent = next.choices[0].text;
+      choice2Btn.textContent = next.choices[1].text;
+      choice2Btn.classList.remove('hidden');
+    }
+
+    function handleChoice(index) {
+      try { choiceSound.play(); } catch (_) {}
+
+      let choiceDesc = '';
+      let effects = {};
+
+      if (firstTurn) {
+        if (index === 0) {
+          choiceDesc = 'Focused on education reforms.';
+          effects = { approval: +10, economy: -5, literacy: +2, treasury: -20 };
+        } else {
+          choiceDesc = 'Focused on strengthening the economy.';
+          effects = { economy: +15, approval: -5, treasury: -30 };
+        }
+        firstTurn = false;
+      } else if (currentEvent?.isSurprise) {
+        choiceDesc = 'Dealt with the crisis.';
+        effects = currentEvent.effects || {};
+      } else {
+        const c = currentEvent?.choices?.[index];
+        if (!c) return;
+        choiceDesc = c.text;
+        effects = c.effects || {};
+      }
+
+      // Apply difficulty multiplier to effects
+      effects = applyDifficultyEffects(effects);
+
+      // Apply effects to known stats only
+      const keys = Object.keys(effects);
+      const effectsReport = [];
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(stats, key)) {
+          const before = stats[key];
+          stats[key] = stats[key] + effects[key];
+          const delta = stats[key] - before;
+          if (delta !== 0) effectsReport.push(${key}: ${delta > 0 ? '+' : ''}${delta});
+        }
+      }
+
+      // Natural population growth each turn (affected by difficulty)
+      const growthMultiplier = player.difficulty === 'easy' ? 1.2 : player.difficulty === 'hard' ? 0.8 : 1.0;
+      const populationGrowth = Math.floor(stats.population * (0.001 + (stats.approval / 10000)) * growthMultiplier);
+      stats.population += populationGrowth;
+
+      // Advance time 10–30 days
+      const dayAdvance = Math.floor(Math.random() * 21) + 10;
+      daysSurvived += dayAdvance;
+
+      // News entry
+      pushNews(Day ${daysSurvived}: You chose to "${choiceDesc}". Effects: [${effectsReport.join(', ')}]);
+
+      refreshUI();
+      checkGameOver();
+      if (!isGameOver()) {
+        presentEvent();
+      }
+      saveGame();
+    }
+
+    function isGameOver() { return !gameOverModal.classList.contains('hidden'); }
+
+    function checkGameOver() {
+      let reason = '';
+      if (stats.approval <= 0)      reason = "The people have rioted and you've been forced out of office!";
+      else if (stats.economy <= 0)  reason = 'The economy has collapsed, leading to a vote of no confidence.';
+      else if (stats.diplomacy <= 0)reason = 'Poor international relations left the nation isolated and weak.';
+      else if (stats.military <= 0) reason = 'A military coup has overthrown your government.';
+      else if (stats.treasury <= 0) reason = 'The national treasury is empty! The country is bankrupt.';
+
+      if (reason) {
+        if (stats.approval <= 0) achievements.add("Impeached");
+        endGame(reason);
+      }
+    }
+
+    function endGame(reason) {
+      updateHighScore();
+      gameOverMessage.textContent = reason;
+      daysSurvivedSpan.textContent = daysSurvived;
+      gameOverModal.classList.remove('hidden');
+      try { gameOverSound.play(); } catch (_) {}
+    }
+
+    function quitToMenu() {
+      gameOverModal.classList.add('hidden');
+      gameRoot.classList.add('hidden');
+      setupScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+      if (localStorage.getItem('presidentSimulator')) {
+        continueBtn.classList.remove('hidden');
+      }
+    }
+
+    // ---------- FLOATING PARTICLES ----------
+    function createParticles() {
+      const container = document.getElementById('particles-container');
+      const particleCount = 30;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        // Random properties
+        const size = Math.random() * 4 + 1;
+        const left = Math.random() * 100;
+        const animationDuration = Math.random() * 20 + 10;
+        const animationDelay = Math.random() * 10;
+        
+        particle.style.width = ${size}px;
+        particle.style.height = ${size}px;
+        particle.style.left = ${left}%;
+        particle.style.animationDuration = ${animationDuration}s;
+        particle.style.animationDelay = ${animationDelay}s;
+        
+        // Random color
+        const colors = ['rgba(255, 0, 102, 0.7)', 'rgba(102, 0, 255, 0.7)', 'rgba(0, 204, 255, 0.7)', 'rgba(255, 204, 0, 0.7)'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.backgroundColor = color;
+        
+        container.appendChild(particle);
+      }
+    }
+
+    // ---------- EVENT LISTENERS ----------
+    choice1Btn.addEventListener('click', () => handleChoice(0));
+    choice2Btn.addEventListener('click', () => handleChoice(1));
+
+    restartBtn.addEventListener('click', () => {
+      gameOverModal.classList.add('hidden');
+      startNewGame();
+    });
+    quitToMenuBtn.addEventListener('click', quitToMenu);
+
+    newGameBtn.addEventListener('click', () => {
+      startScreen.classList.add('hidden');
+      setupScreen.classList.remove('hidden');
+    });
+
+    backToStartBtn.addEventListener('click', () => {
+      setupScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+    });
+
+    clearSaveBtn.addEventListener('click', clearSave);
+
+    // Difficulty selection
+    difficultyButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Remove selected class from all buttons
+        difficultyButtons.forEach(btn => btn.classList.remove('selected'));
+        
+        // Add selected class to clicked button
+        button.classList.add('selected');
+        
+        // Update player difficulty
+        player.difficulty = button.dataset.difficulty;
+        
+        // Update difficulty description
+        difficultyDescription.innerHTML = <strong>${difficultySettings[player.difficulty].name}:</strong> ${difficultySettings[player.difficulty].description};
+      });
+    });
+
+    confirmSetupBtn.addEventListener('click', () => {
+      const name = document.getElementById('player-name').value.trim();
+      const age = parseInt(document.getElementById('player-age').value, 10);
+      const country = document.getElementById('player-country');
+      const countryText = country.options[country.selectedIndex].text;
+      const countryCode = country.value;
+
+      if (!name || !age || !countryCode) {
+        showToast('Please enter your name, age, and select a country!');
+        return;
+      }
+
+      player = { name, age, country: countryText, countryCode, difficulty: player.difficulty };
+      startNewGame();
+    });
+    
+    socialShareButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        shareScore(button.dataset.platform);
+      });
+    });
+
+    // ---------- INIT ----------
+    window.addEventListener('load', () => {
+      // Create floating particles
+      createParticles();
+      
+      // Load high scores for each difficulty
+      const difficulties = ['easy', 'medium', 'hard'];
+      let highestScore = 0;
+      let bestDifficulty = 'medium';
+      let bestPlayer = 'Player';
+      
+      difficulties.forEach(diff => {
+        const scoreKey = presidentSimulatorHighScore_${diff};
+        const playerKey = presidentSimulatorHighScorePlayer_${diff};
+        const savedScore = localStorage.getItem(scoreKey);
+        
+        if (savedScore && parseInt(savedScore, 10) > highestScore) {
+          highestScore = parseInt(savedScore, 10);
+          bestDifficulty = diff;
+          bestPlayer = localStorage.getItem(playerKey) || 'Player';
+        }
+      });
+      
+      highScore = highestScore;
+      highScorePlayer = bestPlayer;
+      highScoreDifficulty = bestDifficulty;
+      
+      highScoreElement.textContent = ${highScore} days;
+      highScorePlayerElement.textContent = by ${highScorePlayer} (${difficultySettings[highScoreDifficulty].name});
+      
+      // Set medium as def
